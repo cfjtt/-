@@ -1,0 +1,4 @@
+当我们在使用流进行转换的时候，如果出现乱码问题，一般只要保证文件为utf-8，流的字符集
+设置为utf-8就可以解决问题，但是在一些跨系统的文件之间的读写，设置这些之后，是
+没有效果的，这是我们可以将流转换成字节数组流ByteArrayInput(String.getBytes())
+ByteArrayInputStream(input.toString());

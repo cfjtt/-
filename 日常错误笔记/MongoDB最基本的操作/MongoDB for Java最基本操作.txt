@@ -1,0 +1,124 @@
+1.连接数据库(没有就创建)
+	(1).不适用安全验证，连接数据库
+		MongoClient client =new MongoClient("localhost",27017);
+		MongoDatabase database = client.getDatabase("test");
+	(2).指定用户连接到数据库，使用安全验证的方式
+		ServerAddress address = new ServerAddress("localhost",27017);
+		List<ServerAddress> addressList = new ArrayList<ServerAddress>();
+		addressList.add(ServerAddress);
+		MongoCredential mongoCredential = new MongoCredential(String username,String dbName,Char[] password);
+		List<MongoCredential> mongCredentialLists = new ArrayList<MongoCredential>();
+		mongoCredentialLists.add(mongCredentialLists);
+		MongoClient client = new MongoClient(addressList,mongCredentialLists);
+		MongoDatabase database = client.getDatabase("test");
+2.删除数据库
+	database.drop()
+	
+3.创建集合
+	database.creatCollection(String name);
+4.删除集合'
+	collection.drop()
+		
+5.查询集合
+	1.获得所有集合
+		 database.listCollections();
+		 database.listCollectionNames();
+		 
+	2.获取指定集合
+		MongoCollection<Document> collection = database.getCollection(collection_name);
+		
+6.修改集合
+	collection.renameCollection()
+	
+7.插入文档
+	collection.insertOne(Document document);
+	collection.insertMany(List<Document> documents);
+	
+8. 删除文档
+	DeleteResult result = colection.deleteOne(Document document);
+	result.getDeleteCount();
+9. 查询文档
+	collection.find();
+	String filter="{name:{$regex:'a'}}"
+	Document document = Document.parse(filter);
+	collection.find(document);
+10 修改文档
+	collection.updateOne(Bson query,Bson update);
+	collection.updateMany(Bson query,Bson update);
+	update(Filter.eq(),new Document("$set",new Document(..)))
+	
+自从3.0往后，mongodb提供了一个Filters方法。这个过滤器可以提供了Filters.regex(),Filters.and(),Filters.in()等等很多常用的
+方法，避免了我们查询等操作时，写复杂的Document.append()操作
+   例如 String regex="a.*";
+		Pattern pattern = Pattern.compile(regex);
+		collection.find(Filters.regex("name",pattern));
+		collection.updateOne(Filters.regex("name",pattern),new Document("$set",new Document("name","bbbb")));
+   
+   Filters这里所有的函数都是用了删，查，改，增加操作在这里不是很适合
+   
+   如果要在java中使用聚合函数
+   collection.aggregate(List<Document> pipeline)
+	eg: //db.myTestCollection.aggregate([{$match:{age:{$lt:6}}},{$group:{_id:'$name','totalAge':{$sum:{$add:['$age',10]}}}}])"
+		Document match = new Document("$match",new Document("age",new Document("$lt",6)));
+		Document group = new Document("$group",new Document("_id","$name").append("totalAge",new Document("$sum","$age")));
+		List<Document> pipe = new ArrayList<Document>();
+		pipe.add(match);
+		pipe.add(group);
+		AggregateIterable<Document> aggregateIterable=collection.aggregate(pipe);
+		for(Document document : aggregateIterable){
+			System.out.println(document.toJson());
+		}
+		
+   java中实现模糊查询
+		collection.find(Filters.regex(String fiels,Pattern pattern));
+	
+   java中实现or等等类似的操作
+		Docuemnt document1 = new Document("name","Test2");
+		Document document2 = new  Document("age",2);
+		List<Bson> all = new ArrayList<Bson>();
+		all.add(document1);
+		all.add(document2);
+		Iterable<Bson> ors = all;
+		collection.find(Filters.or(ors));
+	   //其他的一些操作类似于这样
+		
+Java中实现分页查询
+	collection.find().skip(int).limit(int).sort(Document document);
+	
+	
+MongDB在java上实现批量操作，不像关系型数据一样，使用preparestatement.addBatch(),.
+preparestatement.executeBatch()
+而是直接提供了方法insertMany(),updateMany()等等一系列的方法，传入list集合。实现批量操作
+
+Java中对数据去重，使用aggregate()实现
+   
+Java怎么实现上传下载文件
+	位于包gridFs中主要是三个类
+		旧版本的上传下载(包位于com.mongo.gridfs)
+			Mongo mongo = new Mongo("localhost",27017);
+			DB db = mongo.getDB(test);
+			GridFS  fs = new GridFS(db,"files");
+			//上传
+			GridFSFile fsfile = fs.createFile(new File());
+			fsfile.save();
+			
+			//下载
+			GridFSDBFile dbfile = fs.findOne(..);
+			dbfile.writeTo();
+			
+			
+		新版本的上传下载(包位于com.mongo.client.gridfs)
+			MongoClient client = new MongoClient("localhost",27017);
+			MongoDatabase database = client.getDatabase("..");
+			GridFSBucket bucket = GridFSBuckets.create(database,String bucketName);
+			//上传
+			ObjectId id=bucket.uploadFromStream(String filename,InputStream out);
+			//下载
+			bucket.downloadToStream(ObjectId id,OutputStream out);
+			
+		关于文件的删除，GridFSBucket提供了delete(ObjectId id)方法
+		
+		和一般的查询一样，find()/find(Bson filter)方法查询所有的files集合
+			GridFSFindIterable iterable = bucket.find();
+		
+			

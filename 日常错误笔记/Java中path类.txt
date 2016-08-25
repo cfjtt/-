@@ -1,0 +1,9 @@
+文件路径存在于文件系统中，文件系统可以通过FileSystems这个final类来访问
+这个类提供了几个很重要的方法
+	getDefault():这个静态方法返回JVM默认的FileSystem,一般来说，也就是操作系统的默认文件系统
+	getFileSystem(URL uri):这个静态方法从文件系统提供者中返回一个URI匹配的文件系统（FileSystem），Path类可以在任何文件系统和
+	存储空间(FileStore,这个类反映了底层的存储)上操作文件.默认情况下，Path类引用默认文件系统
+
+Path类是java.io.File的升级版
+File file=new File("index.html");
+Path path=Paths.get("index.html");

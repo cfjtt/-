@@ -1,0 +1,142 @@
+数据库连接池有很多选择c3p,dhcp,proxool等
+	DruidDataSource配置例子
+	
+	<context:property-placeholder location="classpath:config/config_101.properties" />
+	<bean name="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          init-method="init" destroy-method="close">
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${HSQL_USER_NAME}" />
+        <property name="password" value="${HSQL_PASSWORD}" />
+        <!-- 初始化连接大小 -->
+        <property name="initialSize" value="0" />
+        <!-- 连接池最大使用连接数量 -->
+        <property name="maxActive" value="20" />
+        <!-- 连接池最大空闲 -->
+        <property name="maxIdle" value="20" />
+        <!-- 连接池最小空闲 -->
+        <property name="minIdle" value="5" />
+        <!-- 获取连接最大等待时间 -->
+        <property name="maxWait" value="60000" />
+        <!-- <property name="poolPreparedStatements" value="true" /> <property
+            name="maxPoolPreparedStatementPerConnectionSize" value="33" /> -->
+        <property name="validationQuery" value="${validationQuery.sql}" />
+        <property name="testOnBorrow" value="false" />
+        <property name="testOnReturn" value="false" />
+        <property name="testWhileIdle" value="true" />
+
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="25200000" />
+
+        <!-- 打开removeAbandoned功能 -->
+        <property name="removeAbandoned" value="true" />
+        <!-- 1800秒，也就是30分钟 -->
+        <property name="removeAbandonedTimeout" value="1800" />
+        <!-- 关闭abanded连接时输出错误日志 -->
+        <property name="logAbandoned" value="true" />
+
+        <!-- 开启Druid的监控统计功能 -->
+        <property name="filters" value="stat" />
+        <!--<property name="filters" value="mergeStat" /> -->
+        <!-- Oracle连接是获取字段注释 -->
+        <property name="connectProperties">
+            <props>
+                <prop key="remarksReporting">true</prop>
+            </props>
+        </property>
+    </bean>
+	 <!-- JDBC配置 -->
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource">
+            <ref bean="dataSource" />
+        </property>
+    </bean>
+	<!--mybatis配置-->
+	<!--(1) 配置SqlSessionFactory-->
+	<bean id="" class="org.mybatis.spring.SqlSessionFactory">
+		<!--配置连接资源-->
+		<property name="dataSource" ref="dbcp"></property>
+		<!--配置扫描的mapper.xml-->
+		<property name="mapperLocations" value="com/just/mapper/*.xml">
+	</bean>
+	<!--(2)配置mybatis要扫描到的接口-->
+	<bean id="mapperScannerInterface" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.just.dao">
+	</bean>
+	<!--配置基于注解的MVC-->
+	<mvc:annocation-driven />
+	<!--开启组件扫描-->
+	<context:component-scan basePackage="com.just.dao">
+	
+	
+	和dbcp类似，druid的常用配置项如下
+	name : 配置这个属性的意义在于，如果存在多个数据源，监控的时候可以通过名字来区分开来，如果没有配置，将
+			会自动配置一个名字。名字格式为:"DataSource-"+System.identityHashCode(this)
+	
+	jdbcUrl
+	username
+	password
+	driverClassName  : 可以不用配置，会自动根据url识别
+	initialSize:	初始化时建立物理连接的个数。初始化发生在显示调用init方法或者第一次getConnection时
+	maxActive：		最大连接池数量
+	maxIdIe:		连接池最大空闲(这个属性已经不在使用)
+	minIdIe:		连接池最小空闲
+	maxWait:		获取连接时最大等待时间，单位毫秒。配置maxWait之后，缺省启用公平锁，并发效率
+					会有所下降，如果需要可以通过配置useUnfairLock属性为true使用非公平锁
+	poolPreparedStatements: false  是否缓存prepareStatement，也就是PSCache，PSCache对支持游标的
+									数据库性能提升巨大，比如说Oracle，在MySQL5.5以下版本中没有
+									PSCache功能，建议关闭掉。5.5以上版本有PSCache，建议开启
+	
+	maxOpenPreparedStatements: -1   要启用PSCache，必须配置大于0，当大于0时，poolPreparedStatements自动触发
+									修改为true，在Oracle下可以将这个数值配置大一些
+									
+	validateQuery:		用来检测连接是否有效的SQL，要求是一个查询语句，如果validateQuery为null，
+						testOnBorrow,testOnReturn,testWileIdIe都不会其作用
+	testOnBorrow: true  申请连接时执行validateQuery检测连接是否有效，做了这个配置会降低性能
+	testOnReturn: false 归还连接时执行validateQuery检测连接是否有效，做了这个配置会降低性能
+	testWhileIdIe :false 建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，
+						 如果空闲时间大于timeBetweenEvictionRunsMillis，执行validateQuery检测连接是否有效
+	
+	timeBetweenEvicationRunsMillis:   有两个含义:(1)Destory线程会检测连接的间隔时间
+												 (2)testWhileIdIe的判断依据
+									  配置间隔多久才进行一次检测，检测需要关闭的空闲连接
+	
+	minEvictableIdleTimeMillis:   Destory线程中如果检测到当前连接的最后活跃时间和当前时间的差值
+								  大于minEvictableIdIeTimeMillis，则关闭当前连接
+								  
+	numTestsPerEvictionRun    ：这个属性不在使用
+	
+	connectionInitSqls ：   物理连接初始化的时候执行sql
+	
+	filters :   属性类型是字符串，通过别名的方式扩展插件
+				常用的插件有:监控统计用的是filter:stat
+							 日志用的filter:log4j
+							 防御sql注入的filter:wall
+							 
+	
+	removeAbandoned:  对于建立时间超过removeAbandonedTimeout的连接强制关闭
+	removeAbandonedTimeout: 指定连接建立多长时间就需要被强制关闭
+	logAbandoned : 指定发生removeabandoned的时候，是否记录当前线程的堆栈信息到日志中
+	
+	上面只是列出了常用的配置属性，完整的属性列表可以参考DruidDataSourceFactory的ALL_PROPERTIES属性
+	
+	
+	
+	参照上面的配置之后，就配置好了连接池，可以结合框架使用(springmvc,mybatis等等)
+		spring+myatis配合
+	
+	
+	当然如果是web想项目的话，我们监控sql语句
+	<servlet>
+		<servlet-name>DruidStatView</servlet-name>
+		<servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DruidStatView</servlet-name>
+		<url-pattern></url-pattern>
+	</servlet-mapping>
+	
+	
+	
+	

@@ -1,0 +1,20 @@
+insert into table select from 插入语句
+select 5 ad id  类似于复制语句，将5复制给id
+Duplicate entry '1741330-KEY' for key 'SYS_IDX_SYS_CT_10350_10356' 主要是进行插入语句的时候，违反了
+唯一性约束条件，可能是primary或者索引等
+针对上面的问题，mysql提供了两种方法解决  replace into和ignore into
+    replace into是如果存在重复数据，则替换掉原来的记录
+    ignore into如果存在重复数据，则扔掉新的记录
+
+
+   insert ignore into
+   replace into
+   eg:  1. replace into tbl_name(col_name, ...) values(...)
+	2. replace into tbl_name(col_name, ...) select ...
+        3. replace into tbl_name set col_name=value, ...
+
+
+
+当数据库中存在 Lock wait timeout exceeded
+		使用show processlist查看当前使用的用户进程
+		然后使用kill id杀掉阻塞时间较长的

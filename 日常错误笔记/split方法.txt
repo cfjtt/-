@@ -1,0 +1,27 @@
+split(regex,limit)
+	数组长度问题
+		String a="";
+		String[] b=a.split(",");
+		这时数组的长度为1
+		
+	    String a="c";
+		String[] b=a.split(",");
+		这时数组的长度为1
+		
+		String a="c,,c";
+		String[] b=a.split(",");
+		这时数组的长度为3
+		
+		String a=","
+		String[] b=a.split(",");
+		这时数组的长度为0
+		
+		比如:String str="abcdefg,,,";
+			此时数组是长度为1，只有abcdefg
+			
+		这时受最后一个参数的影响
+			public String[] split(String regex,int limit)
+			limit参数控制模式应用的次数，因此影响结果数组的长度。如果限制n>0,则模式将被应用
+			n-1次，数组的长度将不会大于n，而且数组的最后项将包含超过出最后匹配的定界符的所有字符。
+			如果n为非正，则模式将被应用尽可能多的次数，也就是说忽略空白字符，而且数组可以是任意长度。
+			如果n为o，则模式将被应用尽可能多的次数，数组可有任意长度，并且结尾空字符串将被丢弃。

@@ -1,0 +1,30 @@
+1.log4j.properties文件.默认情况下日志管理在classpath下查找名为log4j.properties的文件
+	主要配置: 根日志记录器的级别定义为DEBUG并连接附加器命名为X
+			   设置名为X的附加目的地是一个有效的appender
+			   设置布局的附加器X
+			   
+   lo4j.properties示例
+	  根日志记录器(logger)的级别定义DEBUG并连接附加器命名为FILE
+	  附加器(appender)File是定义为FileAppender并写入到一个名为log.out文件中
+	  定义的布局模式是%m%n,这意味着每打印日志消息之后，加上一个换行符
+	  
+	  log4j.rootLogger=DEBUG,FILE
+	  log4j.appender.FILE=org.apache.log4j.FileAppender
+	  log4j.appender.FILE.File=log.out
+	  lo4j.appender.FILE.layout=org.apache.log4j.PatternLayout
+	  log4j.appender.FILE.layout.conversionPattern=%m%n
+	  
+	  
+    在代码中使用Logger logger =Logger.getLogger(.class);
+		logger.info来打印出相关的信息
+		错误级别
+		   ALL      各级包括自定义级别
+		   DEBUG	
+		   ERROR	错误事件，但是仍然允许应用程序继续运行
+		   FATAL	指定非常严重的错误事件，这可能导致应用程序终止
+		   INFO
+		   OFF      这是最高等级，为了关闭日志记录
+		   TRACE	指定细粒度比debug更低的信息事件
+		   WARN		指定具有潜在危害的情况
+		
+		日志级别:ALL<DEBUG<INFO<WARN<ERROR<FATAL<OFF

@@ -1,0 +1,58 @@
+对于方法的引用，严格意义上来说都需要定义一个接口，可是不管如何操作。实际上有可能操作的接口只有四中。在
+jdk1.8里面提供了一个java.util.function包
+	提供有以下四个核心接口。
+		Function接口:功能性接口:public interface Function<T,R>{public R apply(T t);}
+			此接口需要接受一个参数，并返回一个类型
+		
+		消费型接口(Consumer):public interface Consumer<T>{public void accept(T t)}
+			此接口只负责接受数据(引用数据)，并不返回
+			
+		供给型接口(Supplier<T>):public interface Supplier<T>{public T get(){}}
+			此接口不接受参数，但是可以返回结果
+			
+		断言型接口(Predicate<T>):public interface Predicate<T>{public boolean test(T t)};
+			此接口表示判断
+			
+	由于上面四种接口，所以用户很好会自己定义新的函数式接口
+	范例;观察函数式接口: 接口参数，返回处理结果
+		public class TestDemo{
+			public static void main(String[] args){
+				Function<String,Boolean> fun = "##hello" ::startswith;
+				System.put.println(fun.apply("##"));
+			}
+		}
+		
+	范例:消费型接口
+		class MyDemo{
+			public void print(String str){
+				System.pout.print(str);
+			}
+		}
+		public class TestDemo{
+			public static void main(String[] args){
+				Consumer<String> con = new MyDemo ::print;
+				con.accept("hello");
+				Consumer<String> con = System.out ::print;
+				con.accept("hello");
+			}
+		}
+		//输出hello
+		
+	范例:供给型接口
+		public class TestDemo{
+			public static void main(String[] args){
+				Supplier<String> sup = "hello" ::toUpperCase;
+				System.put.println(sup.get());
+			}
+		}
+		
+	范例:断言型接口(就是判断使用)
+		public class TestDemo{
+			public static void main(String[] args){
+				Predicate<String> pre= "gello"::equals;
+				System.out.println(pre.test("hello"););
+			}
+		}
+		
+	这几个接口包含了我们正常使用的所有的情况，但是有些接口和他们类似。也就是说还有一些其他的
+	函数式接口。所有讲解的这一切都是为了数据流进行准备。

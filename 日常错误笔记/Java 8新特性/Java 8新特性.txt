@@ -1,0 +1,95 @@
+1.接口的增强
+     从Java发展之初到现在已经过了20年，在这20年的时间里面所有的开发者都知道Java中接口是由全局常量
+	 和抽象方法组成，但是这样会存在一个问题，加入现在我们有一个接口，其实现的子类已经有两万个了，现在
+	 我们需要在接口中声明一个方法，并且这个方法在两万个子类中都是一样的。如果按照之前的语法规则，我们需要
+	 在两万个子类中做重复的copy的操作。如果这样的话，那么肯定是不可取。
+	 
+	 所以在java8中允许开发者定义普通方法，但是必须使用default或者static修饰
+		interface IMessage{
+			public void print();
+			default void fun(){
+				System.out.println("测试");
+			}
+		}
+		IMessage imessage = new IMessage();
+		imessage.fun();
+		
+	    //还可以使用static定义方法,直接由接口定义
+		interface IMessage{
+			public void print();
+			static void fun(){
+				System.out.println("测试static");
+			}
+		}
+		
+	总结
+		1.接口里面使用default或static定义方法的意义是避免子类重复实现同样的方法
+		
+		
+		
+2.函数式编程
+	1.分析函数式编程的产生原因
+	2.掌握函数式编程的语法
+		Lamda属于函数式编程的概念，那么为什么需要?
+			lamda主要是解决匿名内部类，繁琐的写法。匿名内部类是在抽象类和接口上发展过来的
+		对于lamda语法，有三种形式
+			1.(参数)->单行语句:
+			2.(参数)->{多行语句}
+			3.(参数)->表达式
+		eg:观察有参的单行语句
+			interface IMessage{
+				public void print(String str);
+			}
+			public class TestDemo{
+				public static void main(String[] args){
+					//单行语句:首先需要定义出此处表达式需要接收的参数，然后表达式直接进行相关操作
+					fun( (s)->System.out.println(s) );
+					//多行语句
+					fun((s)->{
+						s.toUpperCase();
+						System.out.println(s);
+					})
+				}
+				public static void fun(IMessage msg){
+					msg.print("Hello World"); //设置参数的内容
+				}
+			}
+		    如果说现在代码里面只是一个简单的表达式
+			interface IMessage{
+				public int add(int x,int y);
+			}
+			public class TestDemo{
+				public static void main(String[] args){
+					fun( (s1,s2) -> s1+s2));
+				}
+			
+			public static void  fun(IMessage msg){
+				System.out.println(msg.add(10,20));
+			}
+			}
+			总结:lambada里面所写的东西是匿名内部类的方法体，而不是方法
+					比如就是 fun(IMessage msg){
+						System.out.println(msg.add(10,20));
+					}
+					此时lambda写法是 fun((s1,s2)->s1+s2)
+					乍一看会觉得，这尼玛就是傻子啊，fun()明明是接收IMessage对象的，结果
+					传入的却是两个参数，并且还不是IMessage对象。
+					但是想想lambda主要是解决匿名内部类繁琐的操作，就会联想到是针对
+					匿名内部类这个方法，而不是我们所封装的方法。也就是说lambda是针对
+					add()这个方法。所以很好理解为什么传入s1,s2两个参数，其实还可以这样
+					写 int s1,int s2.主要是java8中虚拟机会自动识别类型，所以参数类型可以省略。
+					->箭头后面的主要是方法体:所以也很好理解为什么写s1+s2。但是一般Java中
+					定义了返回类型应该是使用return关键字的。其实上面的写法也可以这样写·
+					fun((s1,s2)-> {return s1+s2;})
+					可以这样理解，lambda表达式就是实现了匿名内部类。
+					上面的代码可以这样理解为
+					lambda实现了匿名内部类
+						public int add(s1,s2){
+							return s1+s2;
+						}
+						紧接着在main方法中调用fun()方法
+						而fun方法是这样实现的
+						fun(IMessage msg){
+							System.out.print(msg.add(10,12));
+						}
+					

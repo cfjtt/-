@@ -1,0 +1,11 @@
+	
+	con.setAutoCommit(false);
+	String sql = "insert into user () values(?,?,?,?,?)"
+	PreparedStatement pst = conn.prepareStatement(String sql);
+	for(int i=0;i<50;i++){
+		pst.setInt(1,i);
+		pst.addBatch();
+	}
+	//批量更新
+	pst.executeBatch();
+	con.commit();

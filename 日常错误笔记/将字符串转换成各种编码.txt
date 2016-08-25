@@ -1,0 +1,1 @@
+对于字符串编码的转换，已经非常熟悉了，new String(str.getBytes(""),)

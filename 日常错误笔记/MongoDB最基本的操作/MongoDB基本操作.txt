@@ -1,0 +1,366 @@
+1.查看MongoDB所有数据库
+	show dbs;
+  查看当前正在使用的数据库
+	db;
+2.MongoDB创建数据库
+	use databaseName;
+
+3.MongoDB删除数据库
+	首先需要通过use databaseName进入到该数据库，然后用db.dropDatabase();删除
+	
+4.创建集合(表)
+    同样还是use进入到需要创建的数据库
+	db.createCollection();
+	
+5.查看集合
+	show collections;
+6.删除集合
+	db.COLLECTION_NAME.drop(); 返回值为true或者false
+	
+7.插入文档
+	db.collection_name.insert({});
+8.查询文档
+	(1)查询文档中所有的字段
+		db.collection_name.find().pretty()
+	(2)查询文档中指定的字段
+		1.默认情况下_id是默认返回的，如果需要排序_id字段
+			db.collection_name.find({"name":".."},{_id:0})
+		2.获取除了指定字段的其他字段
+			db.collection_name.find({"name":""},{"name":0});
+	  其实可以总结就是 条件查询
+		db.find({类似于where条件},{类似于需要显示的字段，不需要显示的字段设置为0})
+		注意第二个参数，意识是字段中不需要包含的字段。也就是说这个字段只能设置为0
+		eg:find({"name":{$regex:"a"}},{"age":0,"name":0})  这个是正确写法
+		   find({"name":{$regex:"a"}},{"age":1,"name":0});  这个就是错误的写法
+		   
+	  (3)类似于where中的>,<等等的表达式
+		  find({key:{$lt:value}})
+	  
+	  (4)类似于where中的AND条件
+		  find({key:value,key:value});
+		  
+	  (5)类似于where中的or
+			find($or:[{key,value},{key,value}])
+			
+9.更新文档
+	 (1)db.COLLECTION_NAME.update(query,update,{upsert:boolean,multi:booleab,writeConcern:document});
+			注意在更新中一定要使用操作符，不然会将select的结果进行更新
+			eg:正确写法
+				db.myTestCollection.update({"name":"dd"},{$set:{"age":12}});
+				这样的效果是将名字为dd的年龄更新为12
+			   错误写法
+				 db.myTestCollection.update({"name":"dd"},{"age":12});
+					这样更新的结果是将name更新为age
+					
+	  (2)更新多个满足条件的文档
+			在MongoDB中更新文档是只更新一条，要是需要更新所有满足条件的，则需要加上
+			multi:true这个属性才可以
+			db.myTestCollection.update({"name":"dd"},{$set:{"age":13}},{multi:true});
+			上面参数的意思:upsert:如果不存在update的记录，是否插入objNew,默认为true
+						   writeConcern:可选，抛出异常的级别
+			
+	  (3)更新整条文档记录
+			save()方法用过传入的文档来替换已有文档
+			db.collection.save({
+				<document>,
+				{writeConcern:<document>}
+			});
+			document:文档数据
+			writeConcern:抛出异常的级别
+			
+10.删除文档
+	 语法格式:db.COLLECTION_NAME.remove(query,{justOne:boolean,writeConcern:document})
+	 justOne:如果设置为true或1，则只删除一个文档，默认是false
+	 writeConcern:抛出异常
+	 
+	 删除所有文档
+		db.COLLECTION_NAME.remove({});
+	 
+	 
+   上面都是最基本的语法，当然Mongodb提供给了我们很多更加方便的函数
+		db.collection_name.findOne();
+		db.collection_name.findAndModify(query,update,new:true/false)
+		db.collection_name.findAndDelete(query,sort);
+		db.collection_name.findAndReplace();
+		db.collection_name.findAndUpdate()
+		db.collection.insertMany()
+		db.collection_name.insertOne()
+		db.collection_name.updateMany();
+11.分页查询
+	 db.COLLECTION_NAME.find().skip().limit()
+	 
+12.查询排序
+	 db.COLLECTION_NAME.find().sort({key:1/-1})
+	   1:是升序   -1:是降序
+13 索引
+	 db.COLLECTION_NAME.ensureIndex({key:1/-1});
+		1是按升序排序  -1是降序
+	 多字段索引
+		db.COLLECTION_NAME.ensureIndex({key:1,key:-1});
+		
+13 删除索引
+	 db.collection_name.dropIndex("indexName")
+	 db.collection_name.dropIndex({"cat":-1});
+     //删除所有索引
+	 db.collection_name.dropIndexes();
+	 //获得索引
+	 db.collection_name.getIndexes();
+		
+14 聚合
+	 MongoDB提供了聚合函数，MongoDB目前提供了三个可以执行聚合函数操作的命令
+	 aggregate,mapReduce,group(mapReduce和group使用起来比较复杂，并且有时不是很能满足需求)
+	   1.使用aggregate()函数
+		db.myTestCollection.aggregate({$group:{_id:"$name","年纪总和":{$sum:"$age"}}});
+		注意使用aggregate()函数，有几个注意点:
+		   1.指定要分组的字段一定是使用_id,不能使用其他名字
+		   2.所需要用到的字段，一定要使用"$字段名字"，不能使用其他名字
+		   3.对于要进行的一些聚合操作，注意一定要类型相同
+				比如:db.myTestCollection.insert({"name":"a","age":1})
+					 db.myTestCollection.insert({"name":"a","age":2})
+					 db.myTestCollection.insert({"name":"a","age":"3"});
+				此时执行上面的语句，发现age的结果为3,而不是6,就是因为字段的类型不一致
+				常见的聚合函数有:
+					$sum,$avg,$min,$max,$push(在结果文档中插入值到一个数据中)
+					$addToSet(在结果文档中插入值到一个数组中，但不创建副本)
+					$first 根据资源文档的排序获取第一个文档
+					$last 获取最后一个
+	   2.聚合管道
+			db.myTestCollection.aggregate([
+				{$match:{age:{$lt:5}}},
+                {$group:{_id:"$name","totalAge":{$sum:"$age"}}}
+			])
+		   聚合管道就是将上一个管道的处理结果交给下一个管道使用
+		   常见的聚合管道
+				$project，$match，$limit，$skip，$unwind(将文档中的数组拆分成多条)
+				$group(对文档中的数据进行分组)，$sort，$geoNear(输出接近某一地理位置的有序文档)
+				
+				$project:数据投影，主要用于重命名，增加和删除字段
+					$project:{
+						title:1,
+						author:1,
+						_id:0 (删除字段),
+						price:{$add:["$price",10]}(修改字段)
+					}
+					上面的查询语句相当于select title,author,(price+10)
+				
+				
+MongoDB正则表达式
+	1.db.myTestCollection.find({name:{$regex:"d"}});
+	   db.myTestCollection.forEach(function(u){})
+	   这里的forEach ie浏览器不支持forEach
+		不区分大小写
+		db.myTestCollection.find({name:{$regex:"a",$options:"$i"}});
+	2.优化正则表达式查询
+		MongoDB的正则表达式仅支持i和m的javascript原生写法,如果要使用x和s等其他的写法
+		就必须使用$regex,$options
+	
+	3.使用正则表达式更新操作
+		db.myTestCollection.update({name:{$regex},{$set:{}}});
+		
+	javascript是mongodb的一大特色，也是优势，很多复杂的查询都可以使用js代码实现。
+	但是javascript的工作效率较低，原则上应该尽量避免在主要业务上大量使用js操作数据库。
+	js就类似于存储过程。
+	
+MongoDB GridFS
+	GridFS用于存储和恢复那些超过16M的文件，类似于图片，视频等等
+	GridFS会将大文件对象分割成多个小的chunk，一般为256，每个chunk将作为一个文档存储在一个
+	chunks集合中
+	GridFS添加文件
+		mongofiles.exe -d gridfs put song.mp3
+		mongofiles.exe -host "ip:port" 数据库名字 put "文件名"';
+		
+	   GridFS是存储文件的数据库名称，如果不存在该数据库，MongODB将会自动创建
+	    到相应的数据库中，使用下面的命令来查询插入的文件列表
+	   db.fs.files.find();
+	   db.fs.chunks.find({files_id:});
+	   
+	   -d 指定数据库。默认是fs
+	   -u -p 指定用户名和密码
+	   -h 指定主机
+	   -port: 指定主机端口
+	   -c 指定集合名,默认是fs
+	   -t 指定文件的mime类型，默认会忽略
+	   
+	 注意有时候，我们上传文件会失败，是因为文件的大小没有超过16M，所以不会上传成功
+	 
+恢复数据库
+  db.repairDatabase()
+	   
+MongoDB数据类型转换
+	db.collection_name.find().forEach(function(x){
+		//String类型转换成int
+		x.age=parseInt(x.age);
+		db.collection_name.save(x.age);
+		
+		//int 转换成 String
+		x.age=new String(x.age);
+		
+		//object转换成int类型
+		x.age = new NumberInt(x.age);
+		//其他的数据类型同上
+		//通过save更新整个文档
+		db.collection_name.save(x);
+		
+	})
+	
+	方法二:
+		db.testC.update({"t":{$type:1}},{$set:{$type:16}})
+		
+		
+		
+MongoDB设置用户名和密码。登录时需要进行安全验证
+	1.开启安全验证
+		如果需要给MongoDB数据库使用安全验证，则需要用--auth开启安全验证
+		开启安全验证有两种方式:
+			(1).重新创建window service服务，在创建时打开安全验证
+				mongod.exe --auth --logpath "" --logappend
+				--dbpath ""  --directoryperdb
+				--serviceName "ServiceName" 
+				--serviceDisplayName  "displayName"
+				--reinstall
+			    directoryperdb的意思是为每一个数据库创建单独的文件夹
+				
+	       (2).直接开始安全性验证
+			  mongod --dbpath ""  --logpath --directoryperdb --auth
+			  
+	2.创建用户
+		(1)需要进入到admin用户，获得root权限
+				use admin
+		(2)使用db.addUser()来添加用户
+			  db.addUser("username","password");
+			  //上面的addUser是老版本的MongoDB,新版本的Mongodb不支持addUser，而是使用
+			  db.createUser()来实现
+			  db.createUser({user:"",password:"",roles:["readWrite"]});
+			  并且写法必须是这样写
+			  官方的api是这样的
+				db.createUser({
+					user:"<name>",
+					pwd:"<password>",
+					customData:{<any information>},
+					roles:[
+						{role:"<role>",db:"<database>" | "<role>"}如果缺省db,则默认是当前的数据库
+					],
+					writeConcern;
+				});
+				参数说明:user:用户名字
+						 pwd:密码
+						 customData:任意内容，例如可以对用户全名介绍
+						 roles:指定用户的角色，可以是一个空的数组，表示给用户设置空的角色
+							数据库用户角色: read, readWrite
+							数据库管理角色  dbAdmin,dbOwner,userAdmin
+							集群管理角色:clusterAdmin、clusterManager、clusterMonitor、hostManager
+							备份恢复角色:backup、restore
+							所有数据库角色:readAnyDatabase、readWriteAnyDatabase、userAdminAnyDatabase、dbAdminAnyDatabase
+							超级用户角色:root
+							//dbOwner 、userAdmin、userAdminAnyDatabase这几个角色也是直接或者间接提供了系统管理员的权限
+							内部角色:_system
+								关于上面的这些角色所拥有的权限，可以参照官方的api文档
+								   Security->Security Reference->Built-In Roles
+						 
+	          在MongoDB中，可以为每一个用户都建立权限认证，也就是说可以指定每个用户
+			  登录到指定的数据库。上面我们进入的是admin数据库，admin数据库是MongoDB的自带
+			  的一个特别的数据库，该数据库中的用户可以访问MongoDB中所有的数据库
+			  
+			  那么如何指定用户访问指定的数据库呢?
+				 (1)首先进入到相关的数据库中
+						use test;
+				  (2) 给该数据库添加用户
+						db.createUser({});
+	3.用户登录
+		 1.进入到指定的数据库
+				use admin
+		 2.使用db.auth(name,password);进行登录
+		      1.表示成功  0表示失败
+			  
+	4.查找和删除用户
+		 每个数据库用户账户，都是以文档的形式存储在db.system.users集合中
+		 文档结构{user:username,readOnly:true,pwd:password hash}
+		 查询某个数据库下的用户(只能是在admin下面该查询才有结果)
+			db.system.user.find();
+			官方提供了很多操作方法可以帮我们更加快捷的实现用户的操作
+			例如;db.getUser();
+				 db.getUsers();
+				 db.updateUser();
+				 db.changeUserPassword()
+				 db.removeUser()
+				 db.dropAllUser()
+				 db.dropUser()
+				 db.grantRolesToUser()等等
+				 一定要常看api文档*****
+		
+	查看用户的信息
+		db.runCommand({usersInfo:"usernames"})
+		
+		
+	上面的这些内容都是一些比较常用的内容，最好的学习方法还是常看MongoDB的官网文档，上面的方法更多
+    
+	
+	
+MongoDB的批量操作
+	查看官方api文档
+	mongo Shell Methods->Bulk Operation Methods
+	1.首先初始化Bulk()用来进行批量操作
+		初始化bulk()方式有两种
+			1.db.collection.initializeOrderedBulkOp()
+			2.db.collection.initializeUnorderedBulkOp()
+			上面两种方法顾名思义就是是否是顺序执行批量操作
+	   主要是有下面集中方法
+			bulk.insert(),bulk.find({}).removeOne()
+			bulk.find().remove()
+			bulk.find().updateOne()/replaceOne()
+			bulk.find().update()
+			bulk.find().upsert().update()/replaceOne()
+				upsert就是当结合中查找时不存在这条记录，则做插入操作
+			bulk.execute()
+			
+		eg:var bulk = db.items.initializeUnorderedBulkOp();
+			bulk.insert( { item: "abc123", defaultQty: 100, status: "A", points: 100 } );
+			bulk.insert( { item: "ijk123", defaultQty: 200, status: "A", points: 200 } );
+			bulk.insert( { item: "mop123", defaultQty: 0, status: "P", points: 0 } );
+			bulk.execute();
+			
+			
+	 2.还有一种可以简单的写法
+		db.collection.bulkWrite({
+			[<operation1>,<operation2>,...],
+			{
+				writeConcern:<document>,
+				ordered:boolean
+			}
+		})
+		operations: insertOne
+					updateOne
+					updateMany
+					deleteOne
+					deleteMany
+					replaceOne
+					
+	    eg:db.collection.bulkWrite([
+			{insertOne:{"document":<document>}}
+		])
+			db.collection.bulkWrite([
+			{updateOne:{"filter":<document>,"update":<document>,"upsert":<boolean>}}
+		])
+			updateMany同上
+			db.collection.bulkWrite([{
+				replaceOne:{"filter":<document>,"replacement":<document>,"upsert":<boolean>}
+			}])
+		db.collection.bulkWrite([
+			{ deleteOne :  { "filter" : <document> } }
+		] )
+		
+		
+db.collection.distinct(String field,query) 或者 db.collection.distincr(String field)
+    去重，并以数组的形式返回
+	
+	
+总之就是经常翻看api
+	
+	
+		
+	
+	  
+
+			
+
+	

@@ -1,0 +1,23 @@
+DatabaseMetaData类是java.sql包中的类，利用它可以获取我们连接到的数据库的结构。存储等很多信息
+	例如:数据库与用户，数据库标识符以及函数与存储过程
+		  获得数据库的索引，表，列，视图等等一些信息。
+		  
+1.获取DatabaseMetaData实例
+	Connection conn=DriverManager.getConnection(....);
+	DatabaseMetaData dbmd=Conn.getMetaData();
+	
+2.获得当前数据库以及驱动的信息
+	dbmd.getDatabaseProductName()  获得当前数据库是什么数据库，返回字符串
+	getDatabaseProductVersion()  获取数据库版本
+	getDriverVersion()
+	getTypeInfo()  获取当前数据库的类型信息
+	
+3.获取当前数据库中表的信息
+	dbmd.getTables(String catalog,String schema,String tableName,String[] types)
+	这个方法带有四个参数
+	String catalog:要获得表所在的编目，""""表示没有编目，NULL表示所有编目，编目可以理解为数据库名称
+					对于oracle来说就是数据库的实例
+	
+	String schema:模式，可以理解为数据库的用户，也就是数据库的登录名，并且登录名必须是大写。mysql不做要求
+					这些都需要
+	
